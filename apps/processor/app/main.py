@@ -3,6 +3,7 @@ import sys
 import argparse
 import tempfile
 import uvicorn
+from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -106,6 +107,12 @@ async def extract_financials_endpoint(file: UploadFile = File(...)):
             os.remove(tmp_path)
 
 
+from app.ai.accounting_engine import TechnicalAccountingEngine
+from app.schemas.accounting import TechnicalAccountingMemo
+
+accounting_engine = TechnicalAccountingEngine()
+
+
 @app.post("/compare-portfolio", response_model=MultiEntityComparisonReport)
 async def compare_portfolio_endpoint(directory: str):
     """Pillar 2: Benchmark multi-entity financial performance across a portfolio folder."""
@@ -119,13 +126,112 @@ async def compare_portfolio_endpoint(directory: str):
         raise HTTPException(status_code=500, detail=f"Portfolio comparison failed: {str(e)}")
 
 
+@app.post("/accounting/generate-memo", response_model=TechnicalAccountingMemo)
+async def generate_accounting_memo_endpoint(file: UploadFile = File(...)):
+    """Pillar 3: Generate ASC 606 technical accounting memo and journal entries from contract PDF."""
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        content = await file.read()
+        tmp.write(content)
+        tmp_path = tmp.name
+
+    try:
+        parsed = pipeline.parser.parse(tmp_path)
+        memo = accounting_engine.analyze_contract(parsed)
+        return memo
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Accounting memo generation failed: {str(e)}")
+    finally:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+
+
+# ---------------------------------------------------------------------------
+# Pillar 4: Batch Data Automation & Python Script Execution Framework
+# ---------------------------------------------------------------------------
+from app.automation.engine import AutomationEngine, generate_benchmark_multi_department_dataset
+from app.automation.script_registry import REGISTRY
+from app.schemas.automation import AutomationJobRequest, AutomationJobResult, AutomationScriptMetadata
+
+automation_engine = AutomationEngine()
+
+
+@app.get("/automation/scripts", response_model=List[AutomationScriptMetadata])
+async def list_automation_scripts_endpoint():
+    """Pillar 4: List registered specialized Python automation scripts."""
+    return REGISTRY.list_scripts()
+
+
+@app.post("/automation/run", response_model=AutomationJobResult)
+async def run_automation_endpoint(request: AutomationJobRequest):
+    """Pillar 4: Run batch data normalization, business rules, and specialized Python scripts."""
+    try:
+        return automation_engine.run_job(request)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Automation job failed: {str(e)}")
+
+
+@app.get("/automation/benchmark-dataset")
+async def get_benchmark_dataset_endpoint():
+    """Pillar 4: Retrieve multi-department benchmark raw dataset."""
+    return {"records": generate_benchmark_multi_department_dataset()}
+
+
+# ---------------------------------------------------------------------------
+# Pillar 5: Intelligent Workspace & Organizational Knowledge Brain (RAG)
+# ---------------------------------------------------------------------------
+from app.rag.rag_engine import RAG_ENGINE
+from app.schemas.workspace import Workspace, RAGQueryRequest, RAGQueryResponse, ConversationThread
+
+
+@app.get("/workspaces", response_model=List[Workspace])
+async def list_workspaces_endpoint():
+    """Pillar 5: List all active organizational workspaces."""
+    return RAG_ENGINE.list_workspaces()
+
+
+@app.get("/workspaces/{workspace_id}", response_model=Workspace)
+async def get_workspace_endpoint(workspace_id: str):
+    """Pillar 5: Get workspace details by ID."""
+    ws = RAG_ENGINE.get_workspace(workspace_id)
+    if not ws:
+        raise HTTPException(status_code=404, detail="Workspace not found")
+    return ws
+
+
+@app.post("/workspaces/{workspace_id}/chat", response_model=RAGQueryResponse)
+async def chat_workspace_endpoint(workspace_id: str, request: RAGQueryRequest):
+    """Pillar 5: Query knowledge brain with semantic search and page citations."""
+    try:
+        req = request.model_copy(update={"workspace_id": workspace_id})
+        return RAG_ENGINE.query_workspace(req)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"RAG query failed: {str(e)}")
+
+
+@app.get("/workspaces/{workspace_id}/conversations", response_model=List[ConversationThread])
+async def list_conversations_endpoint(workspace_id: str):
+    """Pillar 5: List conversation history for a workspace."""
+    return RAG_ENGINE.list_workspace_conversations(workspace_id)
+
+
+
+
 def run_cli():
-    """Command-line interface to test contract diligence, financial normalization, or portfolio benchmarking."""
+    """Command-line interface to test contract diligence, financial normalization, or technical accounting memos."""
     parser = argparse.ArgumentParser(description="DCA Document Analysis CLI")
     parser.add_argument("--file", "-f", help="Path to single contract PDF file")
     parser.add_argument("--batch", "-b", help="Path to directory containing batch of PDF contracts (Pillar 1)")
     parser.add_argument("--financials", help="Path to single financial statement PDF (Pillar 2)")
     parser.add_argument("--compare-portfolio", help="Path to directory of portfolio company financial statements (Pillar 2)")
+    parser.add_argument("--accounting-memo", help="Path to contract PDF for Pillar 3 Technical Accounting Memo generation")
+    parser.add_argument("--automation-benchmark", action="store_true", help="Run batch data automation & script engine on benchmark dataset (Pillar 4)")
+    parser.add_argument("--run-automation", help="Path to JSON file containing raw records to run automation framework on (Pillar 4)")
+    parser.add_argument("--rag-query", help="Query the organizational knowledge brain using RAG (Pillar 5)")
+    parser.add_argument("--workspace", default="ws-project-apollo", help="Target workspace ID for RAG query (Pillar 5)")
+    parser.add_argument("--list-workspaces", action="store_true", help="List all active organizational workspaces (Pillar 5)")
     parser.add_argument("--provider", "-p", default="mock", help="AI provider (mock, gemini, openai)")
     args = parser.parse_args()
 
@@ -198,6 +304,56 @@ def run_cli():
                 print(f"  • {n}")
         return
 
+    # Pillar 3: Technical Accounting Memo & Journal Entry Generation
+    if args.accounting_memo:
+        if not os.path.exists(args.accounting_memo):
+            print(f"Error: File not found at {args.accounting_memo}")
+            sys.exit(1)
+
+        parsed = pipeline.parser.parse(args.accounting_memo)
+        memo = accounting_engine.analyze_contract(parsed)
+
+        print(f"\n==========================================================================")
+        print(f"📜 PILLAR 3: TECHNICAL ACCOUNTING MEMO (ASC 606)")
+        print(f"==========================================================================")
+        print(f"Memo Reference:    {memo.memo_id}")
+        print(f"Contract Title:    {memo.contract_title}")
+        print(f"Parties:           {' vs '.join(memo.parties)}")
+        print(f"Contract Value:    ${memo.contract_value:,.2f} {memo.currency}")
+        print(f"Effective Date:    {memo.effective_date}")
+        print(f"Accounting Model:  {memo.accounting_standard.value}")
+        print(f"Status:            {memo.status}\n")
+
+        print("--- Executive Summary ---")
+        print(memo.executive_summary)
+
+        print("\n--- ASC 606 5-Step Evaluation ---")
+        eval606 = memo.asc606_analysis
+        print(f"[Step 1: Contract Identification]\n  {eval606.step1_assessment}\n")
+        print(f"[Step 2: Performance Obligations ({len(eval606.step2_performance_obligations)})]")
+        for p in eval606.step2_performance_obligations:
+            print(f"  • {p.id}: {p.name} | Allocated: ${p.allocated_transaction_price:,.2f} | Timing: {p.timing_of_satisfaction} ({p.recognition_period})")
+        print(f"\n[Step 3: Transaction Price]\n  Total: ${eval606.step3_total_transaction_price:,.2f} USD\n")
+        print(f"[Step 4: Price Allocation]\n  {eval606.step4_assessment}\n")
+        print(f"[Step 5: Revenue Timing & Recognition]\n  {eval606.step5_recognition_summary}\n")
+
+        print("--- Suggested Balanced Journal Entries (Debit / Credit) ---")
+        for je in memo.suggested_journal_entries:
+            balanced_symbol = "✓ BALANCED" if je.is_balanced else "⚠ UNBALANCED"
+            print(f"\n[{je.schedule_id}] {je.event_name} ({je.period}) - {balanced_symbol}")
+            print(f"{'ACCOUNT': <40} {'DEBIT ($)': <14} {'CREDIT ($)': <14}")
+            print("-" * 68)
+            for line in je.lines:
+                deb_str = f"${line.debit:,.2f}" if line.debit else ""
+                cred_str = f"${line.credit:,.2f}" if line.credit else ""
+                print(f"{line.account_name[:39]: <40} {deb_str: <14} {cred_str: <14}")
+            print("-" * 68)
+            print(f"{'TOTAL': <40} ${je.total_debit:,.2f}{'': <6} ${je.total_credit:,.2f}")
+
+        print("\n--- Audit Notes & Financial Disclosures ---")
+        print(memo.conclusion_and_disclosures)
+        return
+
     # Pillar 1: Batch M&A Diligence
     if args.batch:
         if not os.path.isdir(args.batch):
@@ -226,8 +382,95 @@ def run_cli():
 
         return
 
+    # Pillar 4: Batch Data Automation & Python Script Execution Framework
+    if args.automation_benchmark or args.run_automation:
+        import json
+        if args.run_automation:
+            if not os.path.exists(args.run_automation):
+                print(f"Error: Automation data file not found at {args.run_automation}")
+                sys.exit(1)
+            with open(args.run_automation, "r", encoding="utf-8") as f:
+                raw_records = json.load(f)
+                if isinstance(raw_records, dict) and "records" in raw_records:
+                    raw_records = raw_records["records"]
+        else:
+            raw_records = generate_benchmark_multi_department_dataset()
+
+        print(f"\n==========================================================================")
+        print(f"⚙️  PILLAR 4: BATCH DATA AUTOMATION & PYTHON SCRIPT EXECUTION ENGINE")
+        print(f"==========================================================================\n")
+        req = AutomationJobRequest(
+            job_id="cli-batch-run",
+            script_ids=[s.script_id for s in REGISTRY.list_scripts()],
+            raw_records=raw_records,
+        )
+        res = automation_engine.run_job(req)
+
+        print(f"Job ID:                     {res.job_id}")
+        print(f"Status:                     {res.status}")
+        print(f"Execution Duration:         {res.execution_time_ms:.1f} ms")
+        print(f"Total Records Ingested:     {res.total_records_ingested}")
+        print(f"Cleaned Records Count:      {res.cleaned_records_count}")
+        print(f"Duplicates Detected:        {res.duplicates_detected}")
+        print(f"Total Anomalies Flagged:    {res.anomalies_count} (Critical: {res.critical_anomalies_count})\n")
+
+        print("--- Specialized Python Scripts Executed ---")
+        for s_log in res.script_logs:
+            print(f"  • [{s_log.status}] {s_log.script_name: <45} ({s_log.execution_time_ms:.1f}ms) | Anomalies: {s_log.anomalies_flagged} | Insights: {s_log.insights_generated}")
+
+        print("\n--- Key Business Insights & Strategic Recommendations ---")
+        for ins in res.insights:
+            print(f"  [{ins.trend}] {ins.title}: {ins.formatted_value}")
+            print(f"      Summary:        {ins.narrative}")
+            print(f"      Recommendation: {ins.recommendation}\n")
+
+        print("--- Top Detected Anomalies & Risk Breaches ---")
+        for anom in res.anomalies[:8]:
+            print(f"  [{anom.severity: <8}] {anom.anomaly_type: <28} (Rec #{anom.record_index}): {anom.description}")
+
+        return
+
+    # Pillar 5: Intelligent Workspace & Organizational Knowledge Brain (RAG)
+    if args.list_workspaces:
+        print(f"\n==========================================================================")
+        print(f"🧠 PILLAR 5: ORGANIZATIONAL WORKSPACES & KNOWLEDGE BASES")
+        print(f"==========================================================================\n")
+        workspaces = RAG_ENGINE.list_workspaces()
+        print(f"{'WORKSPACE ID': <25} {'CLIENT / ORG': <30} {'DOCS': <6} {'NAME'}")
+        print("-" * 90)
+        for ws in workspaces:
+            print(f"{ws.workspace_id: <25} {ws.client_name[:29]: <30} {ws.document_count: <6} {ws.name}")
+        return
+
+    if args.rag_query:
+        print(f"\n==========================================================================")
+        print(f"🧠 PILLAR 5: KNOWLEDGE BRAIN CONTEXTUAL RAG QUERY")
+        print(f"==========================================================================\n")
+        ws = RAG_ENGINE.get_workspace(args.workspace)
+        if not ws:
+            print(f"Error: Workspace '{args.workspace}' not found.")
+            sys.exit(1)
+
+        print(f"Target Workspace: {ws.name} ({ws.client_name})")
+        print(f"Query:            \"{args.rag_query}\"\n")
+
+        rag_req = RAGQueryRequest(workspace_id=args.workspace, query=args.rag_query, top_k=4)
+        rag_res = RAG_ENGINE.query_workspace(rag_req)
+
+        print(f"Retrieved Passages: {rag_res.retrieved_chunks_count} | Query Latency: {rag_res.execution_time_ms:.1f}ms\n")
+        print("--- Synthesized Grounded Response ---")
+        print(rag_res.answer)
+
+        print("\n--- Verifiable Document Citations ---")
+        for idx, cite in enumerate(rag_res.citations, 1):
+            clause_str = f" | {cite.clause_reference}" if cite.clause_reference else ""
+            print(f"  [{idx}] {cite.document_name} (Page {cite.page_number}{clause_str})")
+            print(f"      Quote: \"{cite.verbatim_quote}\"")
+
+        return
+
     if not args.file:
-        print("Error: Specify either --file <pdf_path> or --batch <directory>")
+        print("Error: Specify either --file, --batch, --financials, --compare-portfolio, --accounting-memo, --automation-benchmark, or --rag-query")
         sys.exit(1)
 
     if not os.path.exists(args.file):

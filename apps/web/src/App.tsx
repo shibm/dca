@@ -135,11 +135,13 @@ const DEMO_EXTRACTIONS: Record<string, ExtractedField[]> = {
 };
 
 import { MADiligenceView } from './components/MADiligenceView';
-
 import { PortfolioFinancialComparator } from './components/PortfolioFinancialComparator';
+import { AccountingMemoStudio } from './components/AccountingMemoStudio';
+import { AutomationScriptRunner } from './components/AutomationScriptRunner';
+import { IntelligentWorkspace } from './components/IntelligentWorkspace';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'ma-diligence' | 'financial-comparator' | 'upload' | 'documents' | 'analytics'>('financial-comparator');
+  const [activeTab, setActiveTab] = useState<'ma-diligence' | 'financial-comparator' | 'accounting-studio' | 'batch-automation' | 'intelligent-workspace' | 'upload' | 'documents' | 'analytics'>('intelligent-workspace');
   const [documents, setDocuments] = useState<DocumentItem[]>(INITIAL_DEMO_DOCS);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [extractions, setExtractions] = useState<ExtractedField[]>(DEMO_EXTRACTIONS['demo-doc-1']);
@@ -236,6 +238,11 @@ export const App: React.FC = () => {
             {activeTab === 'financial-comparator' && <PortfolioFinancialComparator />}
             {activeTab === 'ma-diligence' && (
               <MADiligenceView onSelectContract={handleSelectDocument} />
+            )}
+            {activeTab === 'accounting-studio' && <AccountingMemoStudio />}
+            {activeTab === 'batch-automation' && <AutomationScriptRunner />}
+            {activeTab === 'intelligent-workspace' && (
+              <IntelligentWorkspace onNavigateTab={(tab) => setActiveTab(tab as any)} />
             )}
             {activeTab === 'upload' && <UploadZone onUploadSuccess={handleUploadSuccess} />}
             {activeTab === 'documents' && (

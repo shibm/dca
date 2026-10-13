@@ -151,3 +151,67 @@ VALUES (
     'admin'
 ) ON CONFLICT (email) DO NOTHING;
 
+-- ------------------------------------------------------------------------------
+-- 7. Pillar 5: Intelligent Workspaces & Knowledge Brain
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS workspaces (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    client_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    industry VARCHAR(100) DEFAULT 'General Corporate',
+    status VARCHAR(50) DEFAULT 'ACTIVE', -- 'ACTIVE', 'ARCHIVED'
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS workspace_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(50) NOT NULL DEFAULT 'EDITOR', -- 'OWNER', 'EDITOR', 'VIEWER'
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT uq_workspace_user UNIQUE (workspace_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS workspace_documents (
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    document_id UUID NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    PRIMARY KEY (workspace_id, document_id)
+);
+
+CREATE TABLE IF NOT EXISTS document_chunks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+    document_name VARCHAR(255) NOT NULL,
+    chunk_index INT NOT NULL,
+    page_number INT NOT NULL,
+    clause_reference VARCHAR(150),
+    text_content TEXT NOT NULL,
+    token_count INT DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chunks_workspace ON document_chunks(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_chunks_doc_page ON document_chunks(document_id, page_number);
+
+CREATE TABLE IF NOT EXISTS workspace_conversations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS workspace_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    conversation_id UUID NOT NULL REFERENCES workspace_conversations(id) ON DELETE CASCADE,
+    role VARCHAR(50) NOT NULL, -- 'user', 'assistant', 'system'
+    content TEXT NOT NULL,
+    citations JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_conversation ON workspace_messages(conversation_id);
+
+

@@ -6,6 +6,9 @@ import { documentsRouter } from './routes/documents.js';
 import { extractionsRouter } from './routes/extractions.js';
 import { reportsRouter } from './routes/reports.js';
 import { financialsRouter } from './routes/financials.js';
+import { accountingRouter } from './routes/accounting.js';
+import { automationRouter } from './routes/automation.js';
+import { workspacesRouter } from './routes/workspaces.js';
 
 const app = express();
 
@@ -29,6 +32,9 @@ app.use('/api/documents', documentsRouter);
 app.use('/api/extractions', extractionsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/financials', financialsRouter);
+app.use('/api/accounting', accountingRouter);
+app.use('/api/automation', automationRouter);
+app.use('/api/workspaces', workspacesRouter);
 
 // Start server
 app.listen(config.port, () => {

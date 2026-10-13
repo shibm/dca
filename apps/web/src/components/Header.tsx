@@ -1,8 +1,8 @@
-import { FileText, BarChart3, UploadCloud, ShieldCheck, TrendingUp } from 'lucide-react';
+import { FileText, BarChart3, UploadCloud, ShieldCheck, TrendingUp, BookOpen, Cpu, Brain } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'ma-diligence' | 'financial-comparator' | 'upload' | 'documents' | 'analytics';
-  setActiveTab: (tab: 'ma-diligence' | 'financial-comparator' | 'upload' | 'documents' | 'analytics') => void;
+  activeTab: 'ma-diligence' | 'financial-comparator' | 'accounting-studio' | 'batch-automation' | 'intelligent-workspace' | 'upload' | 'documents' | 'analytics';
+  setActiveTab: (tab: 'ma-diligence' | 'financial-comparator' | 'accounting-studio' | 'batch-automation' | 'intelligent-workspace' | 'upload' | 'documents' | 'analytics') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
@@ -10,7 +10,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('ma-diligence')}>
+          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('intelligent-workspace')}>
             <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold shadow-sm">
               <ShieldCheck className="w-6 h-6" />
             </div>
@@ -30,7 +30,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
               }`}
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>M&A / SLA Diligence (P1)</span>
+              <span>M&A / SLA (P1)</span>
             </button>
 
             <button
@@ -42,7 +42,43 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
               }`}
             >
               <TrendingUp className="w-4 h-4" />
-              <span>Financial Comparator (P2)</span>
+              <span>Financials (P2)</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('accounting-studio')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-semibold transition ${
+                activeTab === 'accounting-studio'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Accounting Studio (P3)</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('batch-automation')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-semibold transition ${
+                activeTab === 'batch-automation'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Cpu className="w-4 h-4" />
+              <span>Automation (P4)</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('intelligent-workspace')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-semibold transition ${
+                activeTab === 'intelligent-workspace'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Brain className="w-4 h-4" />
+              <span>Workspace (P5)</span>
             </button>
 
             <button
