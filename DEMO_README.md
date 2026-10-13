@@ -94,22 +94,58 @@ python -m app.main --rag-query "What are the termination rights and uptime SLA p
 
 ---
 
+---
+
 ## 🖥️ Interactive Web UI Demo: Step-by-Step
 
-To experience the full interactive visual interface:
+You can run the full stack **with or without Docker**:
 
-### Step 1: Start PostgreSQL, Redis & MinIO
-```bash
-docker compose up -d
-```
-*(Automatically provisions database schema from `db/init.sql` and creates the storage bucket).*
+> [!NOTE]
+> **Can you run this project WITHOUT Docker? YES!**
+> Docker is **purely optional** (only used for containerized PostgreSQL, Redis, and MinIO storage).
+> The Python Processor, Node.js BFF, and React Web UI all have **built-in in-memory vector storage, memory caches, and demo fallbacks**.
+> You can run the entire system natively on your machine without installing or launching Docker.
 
-### Step 2: Start Python Processor (Port 8000)
+---
+
+### Option A: Running Completely WITHOUT Docker (Zero-Docker Mode)
+
+#### 1. Start Python Processor (Port 8000)
 ```bash
 cd apps/processor
 source .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
+*(Runs all 5 pillars, in-memory vector search, ASC 606 engine, and batch automation).*
+
+#### 2. Start Node.js BFF (Port 4000)
+```bash
+cd apps/bff
+npm install
+npm run dev
+```
+*(Automatically activates built-in offline demo fallbacks when PostgreSQL is not running).*
+
+#### 3. Start React Web UI (Port 3000)
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+Open **`http://localhost:3000`** in your browser!
+
+---
+
+### Option B: Running WITH Docker (Optional - for persistent DB)
+
+If you have Docker installed and want containerized PostgreSQL 16, Redis 7, and MinIO object storage:
+
+```bash
+docker compose up -d
+```
+*(Automatically provisions PostgreSQL schema from `db/init.sql` and initializes MinIO).*
+Then start Python (`uvicorn app.main:app --reload`), BFF (`npm run dev`), and Web (`npm run dev`) as above.
 
 ### Step 3: Start Node.js BFF (Port 4000)
 ```bash
