@@ -1,9 +1,8 @@
-import React from 'react';
-import { FileText, BarChart3, UploadCloud, ShieldCheck } from 'lucide-react';
+import { FileText, BarChart3, UploadCloud, ShieldCheck, TrendingUp } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'ma-diligence' | 'upload' | 'documents' | 'analytics';
-  setActiveTab: (tab: 'ma-diligence' | 'upload' | 'documents' | 'analytics') => void;
+  activeTab: 'ma-diligence' | 'financial-comparator' | 'upload' | 'documents' | 'analytics';
+  setActiveTab: (tab: 'ma-diligence' | 'financial-comparator' | 'upload' | 'documents' | 'analytics') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
@@ -35,6 +34,18 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
             </button>
 
             <button
+              onClick={() => setActiveTab('financial-comparator')}
+              className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-semibold transition ${
+                activeTab === 'financial-comparator'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              <span>Financial Comparator (P2)</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('upload')}
               className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition ${
                 activeTab === 'upload'
@@ -43,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
               }`}
             >
               <UploadCloud className="w-4 h-4" />
-              <span>Upload Contract</span>
+              <span>Upload Document</span>
             </button>
 
             <button
@@ -67,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, setActiveTab }) => {
               }`}
             >
               <BarChart3 className="w-4 h-4" />
-              <span>Stakeholder Reports</span>
+              <span>Reports</span>
             </button>
           </nav>
         </div>

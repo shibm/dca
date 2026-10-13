@@ -5,6 +5,7 @@ import { authRouter } from './routes/auth.js';
 import { documentsRouter } from './routes/documents.js';
 import { extractionsRouter } from './routes/extractions.js';
 import { reportsRouter } from './routes/reports.js';
+import { financialsRouter } from './routes/financials.js';
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/documents', documentsRouter);
 app.use('/api/extractions', extractionsRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/financials', financialsRouter);
 
 // Start server
 app.listen(config.port, () => {

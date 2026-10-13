@@ -136,8 +136,10 @@ const DEMO_EXTRACTIONS: Record<string, ExtractedField[]> = {
 
 import { MADiligenceView } from './components/MADiligenceView';
 
+import { PortfolioFinancialComparator } from './components/PortfolioFinancialComparator';
+
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'ma-diligence' | 'upload' | 'documents' | 'analytics'>('ma-diligence');
+  const [activeTab, setActiveTab] = useState<'ma-diligence' | 'financial-comparator' | 'upload' | 'documents' | 'analytics'>('financial-comparator');
   const [documents, setDocuments] = useState<DocumentItem[]>(INITIAL_DEMO_DOCS);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [extractions, setExtractions] = useState<ExtractedField[]>(DEMO_EXTRACTIONS['demo-doc-1']);
@@ -208,7 +210,7 @@ export const App: React.FC = () => {
 
   const handleUploadSuccess = (newDoc: DocumentItem) => {
     setDocuments((prev) => [newDoc, ...prev]);
-    setActiveTab('ma-diligence');
+    setActiveTab('documents');
   };
 
   const activeDoc = documents.find((d) => d.id === selectedDocId) || documents[0];
@@ -231,6 +233,7 @@ export const App: React.FC = () => {
           />
         ) : (
           <>
+            {activeTab === 'financial-comparator' && <PortfolioFinancialComparator />}
             {activeTab === 'ma-diligence' && (
               <MADiligenceView onSelectContract={handleSelectDocument} />
             )}

@@ -46,9 +46,20 @@ PYTHONPATH=. pytest tests/test_extraction.py -v
 ```bash
 python -m app.main --batch tests/contracts_batch
 ```
-This generates the full portfolio rollup: total financial commitments, change-of-control consent requirements, vendor termination triggers, and contract risk scores.
+Generates the M&A diligence portfolio rollup: total financial exposure, change-of-control consent requirements, and SLA penalty matrix.
 
-#### Run CLI Extraction directly on any single PDF:
+#### Run Pillar 2 Multi-Entity Financial Benchmarking across 30+ portfolio companies:
+```bash
+python -m app.main --compare-portfolio tests/portfolio_financials
+```
+Normalizes Income Statements, Balance Sheets, and Cash Flows across portfolio companies. Computes EBITDA margins, Free Cash Flow, YoY growth %, and assesses financial health status (`EXCELLENT`, `SOLID`, `WATCHLIST`, `DISTRESSED`).
+
+#### Run Pillar 2 Single Financial Statement Normalizer:
+```bash
+python -m app.main --financials tests/portfolio_financials/01_CloudVanguard_SaaS_FY2025.pdf
+```
+
+#### Run Single Contract Extraction:
 ```bash
 python -m app.main --file tests/sample_contract.pdf
 ```

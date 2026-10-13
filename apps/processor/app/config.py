@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     # Environment
     ENV: str = "development"
     LOG_LEVEL: str = "info"
+    PROCESSOR_PORT: int = 8000
+    PROCESSOR_HOST: str = "0.0.0.0"
     
     # Database
     DATABASE_URL: str = "postgresql://dca_user:dca_secure_password@localhost:5432/dca_db"
