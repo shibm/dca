@@ -1,0 +1,81 @@
+services:
+  # -------------------------------------------------------------
+  # 1. PostgreSQL Database
+  # -------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: dca_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dca_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dca_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-dca_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dca_user} -d ${POSTGRES_DB:-dca_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------
+  # 2. Redis Message Broker & Cache
+  # -------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: dca_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------
+  # 3. MinIO S3-Compatible Object Storage
+  # -------------------------------------------------------------
+  minio:
+    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
+    container_name: dca_minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin123}
+    command: server /data --console-address ":9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # MinIO Bucket Auto-Creator
+  minio-init:
+    image: minio/mc:RELEASE.2024-05-09T17-04-24Z
+    container_name: dca_minio_init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 ${S3_ACCESS_KEY:-minioadmin} ${S3_SECRET_KEY:-minioadmin123};
+      /usr/bin/mc mb --ignore-existing myminio/${S3_BUCKET_NAME:-dca-documents};
+      /usr/bin/mc anonymous set download myminio/${S3_BUCKET_NAME:-dca-documents};
+      exit 0;
+      "
+
+volumes:
+  pgdata:
+    driver: local
+  miniodata:
+    driver: local
+
