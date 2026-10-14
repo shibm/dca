@@ -24,7 +24,7 @@ authRouter.post('/login', async (req, res: Response) => {
         const token = jwt.sign(
           { id: 'admin-demo-id', email: 'admin@dca.local', role: 'admin' },
           config.jwtSecret,
-          { expiresIn: config.jwtExpiresIn }
+          { expiresIn: config.jwtExpiresIn as any }
         );
         return res.json({
           token,
@@ -52,7 +52,7 @@ authRouter.post('/login', async (req, res: Response) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       config.jwtSecret,
-      { expiresIn: config.jwtExpiresIn }
+      { expiresIn: config.jwtExpiresIn as any }
     );
 
     return res.json({
@@ -70,7 +70,7 @@ authRouter.post('/login', async (req, res: Response) => {
       const token = jwt.sign(
         { id: 'admin-demo-id', email: 'admin@dca.local', role: 'admin' },
         config.jwtSecret,
-        { expiresIn: config.jwtExpiresIn }
+        { expiresIn: config.jwtExpiresIn as any }
       );
       return res.json({
         token,
